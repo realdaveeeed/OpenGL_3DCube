@@ -149,7 +149,7 @@ int main() {
     glEnableVertexAttribArray(1);
 
     //Actual texture importing, creating
-    Texture tex ("../textures/wall.jpg", GL_RGB);
+    Texture tex ("../textures/parlament.jpeg", GL_RGB);
 
     /* Wireframe mode*/
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
