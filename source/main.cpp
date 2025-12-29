@@ -1,7 +1,4 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include <iostream>
-
 #include "glUtils.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -9,24 +6,27 @@
 #include "ext/matrix_clip_space.hpp"
 
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
-
-
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-bool firstMouse = true;
-float lastX =  SCR_WIDTH / 2.0;
-float lastY =  SCR_HEIGHT / 2.0;
+struct AppState {
+    Camera camera;
+    bool firstMouse;
+    float lastX;
+    float lastY;
+    float deltaTime;
+    float lastFrame;
 
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
+    AppState() : camera(glm::vec3(0.0f, 0.0f, 3.0f)),
+                firstMouse(true), lastX(SCR_WIDTH / 2.0),
+                lastY(SCR_HEIGHT / 2.0), deltaTime(0.0f), lastFrame(0.0f) {}
+
+};
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow *window, AppState* state);
 
 int main() {
 
@@ -50,14 +50,16 @@ int main() {
     }
 
     /* Making the window in context */
+    AppState appState;
     glfwMakeContextCurrent(window);
+    glfwSetWindowUserPointer(window, &appState);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    //Init glew and turning core functs on
     glewExperimental = GL_TRUE; // ensures core profile functions are loaded
     if (glewInit() != GLEW_OK) {
         std::cerr << "Failed to initialize GLEW\n";
@@ -165,16 +167,16 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
 
         float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        appState.deltaTime = currentFrame - appState.lastFrame;
+        appState.lastFrame = currentFrame;
 
         // input
         // -----
-        processInput(window);
+        processInput(window, &appState);
 
         // render
         // ------
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer now!
 
         tex.Bind(GL_TEXTURE0);
@@ -182,10 +184,8 @@ int main() {
         // activate shader
         ourShader.use();
 
-        glm::mat4 view          = glm::mat4(1.0f);
-        glm::mat4 projection    = glm::mat4(1.0f);
-        view  = camera.GetViewMatrix();
-        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = appState.camera.GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(appState.camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
@@ -215,47 +215,49 @@ int main() {
     glfwTerminate();
     return 0;
 }
-    void processInput(GLFWwindow *window) {
+    void processInput(GLFWwindow *window, AppState* state) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
 
-        const float cameraSpeed = 1.0f * deltaTime; // adjust accordingly
+        const float cameraSpeed = 1.0f * state->deltaTime; // adjust accordingly
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera.ProcessKeyboard(FORWARD, deltaTime);
+            state->camera.ProcessKeyboard(FORWARD, cameraSpeed);
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera.ProcessKeyboard(BACKWARD, deltaTime);
+            state->camera.ProcessKeyboard(BACKWARD, cameraSpeed);
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            camera.ProcessKeyboard(LEFT, deltaTime);
+            state->camera.ProcessKeyboard(LEFT, cameraSpeed);
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            camera.ProcessKeyboard(RIGHT, deltaTime);
+            state->camera.ProcessKeyboard(RIGHT, cameraSpeed);
 
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    AppState* state = static_cast<AppState*>(glfwGetWindowUserPointer(window));
+    state->camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
+    AppState* state = static_cast<AppState*>(glfwGetWindowUserPointer(window));
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (firstMouse)
+    if (state->firstMouse)
     {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
+        state->lastX = xpos;
+        state->lastY = ypos;
+        state->firstMouse = false;
     }
 
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
+    float xoffset = xpos - state->lastX;
+    float yoffset = state->lastY - ypos;
 
-    lastX = xpos;
-    lastY = ypos;
+    state->lastX = xpos;
+    state->lastY = ypos;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+    state->camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
