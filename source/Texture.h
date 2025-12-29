@@ -18,7 +18,7 @@ public:
     Texture(const std::string filePath, unsigned int imageFormat ,GLenum texType = GL_TEXTURE_2D);
     ~Texture();
 
-    void Bind(unsigned int target);
+    void Bind(unsigned int target = GL_TEXTURE0);
 
     void Use();
 
