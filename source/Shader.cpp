@@ -4,7 +4,6 @@
 
 #include "Shader.h"
 #include "glUtils.h"
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 Shader::Shader(const char* filePath) {
@@ -63,7 +62,7 @@ Shader::Shader(const char* filePath) {
     glLinkProgram(ID);
     checkShaderProgram(&ID);
 
-    /* Deleting the binded shaders */
+    /* Cleanup */
     glDeleteShader(vShader);
     glDeleteShader(fShader);
 }
@@ -71,6 +70,8 @@ Shader::Shader(const char* filePath) {
 Shader::~Shader() {
     glDeleteProgram(ID);
 }
+
+// -- Uniform setters --
 
 void Shader::setBool(const std::string &name, bool value) const {
     glUniform1i(glGetUniformLocation(ID, name.c_str()), static_cast<int>(value));
@@ -80,7 +81,7 @@ void Shader::setFloat(const std::string &name, float value) const {
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
-void Shader::setMat4(const std::string &name, glm::mat4 value) {
+void Shader::setMat4(const std::string &name, const glm::mat4 &value) const {
     glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()),1 ,GL_FALSE, glm::value_ptr(value));
 }
 
@@ -108,10 +109,10 @@ void Shader::checkShaderComp(const unsigned int *shader) {
     {
         if (shaderType == GL_VERTEX_SHADER) {
             glGetShaderInfoLog(*shader, 512, nullptr, infoLog);
-            std::cout << "ERROR: VERTEX SHADER COMP FAILED\n" << infoLog << std::endl;
+            std::cerr << "ERROR: VERTEX SHADER COMP FAILED\n" << infoLog << std::endl;
         } else if (shaderType == GL_FRAGMENT_SHADER) {
             glGetShaderInfoLog(*shader, 512, nullptr, infoLog);
-            std::cout << "ERROR: FRAGMENT SHADER COMP FAILED\n" << infoLog << std::endl;
+            std::cerr << "ERROR: FRAGMENT SHADER COMP FAILED\n" << infoLog << std::endl;
         }
 
     }
