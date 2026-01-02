@@ -14,7 +14,7 @@ A modern C++ OpenGL application, This project demonstrates a 3D rendering engine
 * **Image Loading / Texture Mapping:** Utilizes `stb_image` to wrap high-resolution textures.
 * **Math:** utilizes **GLM** for matrix transformations (Model, View, Projection matrices).
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **[OpenGL](https://www.opengl.org/):** Core graphics rendering.
 * **[GLFW](https://www.glfw.org/):** Window creation, context management, and input handling.
@@ -22,7 +22,7 @@ A modern C++ OpenGL application, This project demonstrates a 3D rendering engine
 * **[GLM](https://github.com/g-truc/glm):** Mathematics library for vector and matrix operations.
 * **[stb_image](https://github.com/nothings/stb):** Lightweight image loading.
 
-## 🚀 Installation & Build
+## Installation & Build
 ### Prerequisites
 The project is self-contained. All necessary dependencies are included in the `dep/` and `vendor/` directories, so no manual library installation is required.
 
@@ -43,4 +43,4 @@ The project is self-contained. All necessary dependencies are included in the `d
     * CLion will detect `CMakeLists.txt`
 
 3.  **Run:**
-    * Select the configuration and click the **Run** button (green play icon).
+    * Select the configuration and click the **Run** button.
